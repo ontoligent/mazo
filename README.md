@@ -45,7 +45,7 @@ After this runs, you should see and `output` directory. In that, you will see a 
 output/demo-20-1585231796908834
 ```
 
-That number is just the keyword with the number of tokens and a unix timestamp added to it. It is used to separate your topic models from each other, sinc each is unique. (You should delete these directories when you done with them.)
+That number is just the keyword with the number of tokens and a unix timestamp added to it. It is used to separate your topic models from each other, since each is unique. (You should delete these directories when you done with them.)
 
 Inside of this directory, you will find all the files that MALLET generated, plus a subdirectory called `tables`. In that directory, you should see the following files:
 
