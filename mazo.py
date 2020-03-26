@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import sys, os, re
+import configparser
 from polite.polite import Polite
 
-mallet_bin = 'mallet' # NEEDS TO BE CHANGED WITH ENV
-mallet_output_dir = './output'
+cp = configparser.ConfigParser()
+mazo_config = cp.read('config.ini')
+mallet_bin = mazo_config['mallet_path']
+mallet_output_dir = mazo_config['output_dir']
 
 # Get keyword
 try:
