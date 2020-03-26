@@ -8,6 +8,8 @@ mazo_config = configparser.ConfigParser()
 mazo_config.read('config.ini')
 mallet_bin = mazo_config['DEFAULT']['mallet_path']
 mallet_output_dir = mazo_config['DEFAULT']['output_dir']
+print("Using {} as mallet.".format(mallet_bin))
+print("Using {} as output directory.".format(mallet_output_dir))
 
 # Get keyword
 try:

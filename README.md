@@ -3,14 +3,14 @@ Mazo is a simple inteface MALLET, built on top of Polite, which is a lite versio
 
 ## Instructions
 
-Mazo expects `mallet` to be in your PATH environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed the installation instructions for MALLET on the website, you'd change the value of `mallet_path` to `bin\mallet`, like so:
+Mazo expects `mallet` to be in your PATH environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed [the installation instructions](http://mallet.cs.umass.edu/download.php) for MALLET on the website, you'd change the value of `mallet_path` to `bin\mallet`, like so:
 
 ```buildoutcfg
 [DEFAULT]
 mallet_path = bin\mallet
 ``` 
 
-To begin using Mazon, you'll need to first put a MALLET compliant corpus file in the corpus directory and name it in a special way:
+To begin using Mazo, you'll need to first put [a MALLET compliant corpus file](http://mallet.cs.umass.edu/import.php) in the corpus directory and name it in a special way:
 
 ```
 <keyword>-corpus.csv
