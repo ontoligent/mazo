@@ -4,10 +4,10 @@ import sys, os, re
 import configparser
 from polite.polite import Polite
 
-cp = configparser.ConfigParser()
-mazo_config = cp.read('config.ini')
-mallet_bin = mazo_config['mallet_path']
-mallet_output_dir = mazo_config['output_dir']
+mazo_config = configparser.ConfigParser()
+mazo_config.read('config.ini')
+mallet_bin = mazo_config['DEFAULT']['mallet_path']
+mallet_output_dir = mazo_config['DEFAULT']['output_dir']
 
 # Get keyword
 try:
