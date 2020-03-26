@@ -1,24 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-Mazo is "mallet" in Spanish.
-
-Mazo is a simple inteface MALLET, built on top of polite.
-
-The user puts a corpus file in the corpus directory and names in in a special way:
-
-    <keyword>-corpus.csv
-
-<keyword> is a keyword used to name everything else.
-
-To run Mazo the user does this:
-
-    mazo.py <keyword> <k>
-
-wher <k> stands for the number of topics in the model.
-
-"""
-
 import sys, os, re
 from polite.polite import Polite
 
@@ -35,12 +16,12 @@ except IndexError:
 # Get number of topics
 try:
     n_topics = int(sys.argv[2])
-    if not isinstance(n_topics, int):
-        print("Please enter an integer for the number of topics.")
-        sys.exit()
     if n_topics > 500:
         print("That's a large number of topics. Try a smaller number.")
         sys.exit()
+except ValueError:
+    print("Please enter an integer for the number of topics.")
+    sys.exit()
 except IndexError:
     print("No value provided for number of topics. Using 10.")
     n_topics = 10
