@@ -1,5 +1,5 @@
 # Mazo
-Mazo is a simple inteface MALLET, built on top of Polite, which is a lite version of Polo. Mazo is "mallet" in Spanish.
+Mazo is a simple inteface to MALLET, built on top of Polite, which is a lite version of Polo. Mazo is "mallet" in Spanish.
 
 ## Instructions
 
