@@ -10,7 +10,7 @@ Mazo expects `mallet` to be in your PATH environment variable. If it is not, you
 mallet_path = bin\mallet
 ``` 
 
-The user puts a MALLET compliant corpus file in the corpus directory and names it in a special way:
+To begin using Mazon, you'll need to first put a MALLET compliant corpus file in the corpus directory and name it in a special way:
 
 ```
 <keyword>-corpus.csv
@@ -18,7 +18,7 @@ The user puts a MALLET compliant corpus file in the corpus directory and names i
 
 Here, `<keyword>` is a word used to name everything else. For example, the corpus directory contains a sample corpus file called `demo-corpus.csv`; `demo` is the keyword. After mazo runs, everything will be put in an output directory with the word `demo` prefixed to the files and directories.
 
-To run Mazo the user does this:
+To run Mazo, do this:
 
 ```
 python mazo.py <keyword> <k>
@@ -38,9 +38,9 @@ After this runs, you should see and `output` directory. In that, you will see a 
 output/demo-1585231796908834
 ```
 
-That number is just a unix timestamp. It is used to separate your topic models from each other, sinc each is unique. You should delete these directories when you done with them.
+That number is just a unix timestamp. It is used to separate your topic models from each other, sinc each is unique. (You should delete these directories when you done with them.)
 
-Inside this directory, you will find all the files that MALLET generated, plus a directory called `tables`. In that directory, you should see the following files:
+Inside of this directory, you will find all the files that MALLET generated, plus a subdirectory called `tables`. In that directory, you should see the following files:
 
 ```buildoutcfg
 DOC.csv
@@ -56,5 +56,6 @@ TOPICWORD_WEIGHTS.csv
 VOCAB.csv
 ```
 
-These files implement a relational data model of the topic model. They can be imported into a relational database (like SQLite) or read directly into Pandas.  
+These files implement a relational data model of the topic model. They can be imported into a relational database (like SQLite) or read directly into Pandas. 
 
+Have fun!
