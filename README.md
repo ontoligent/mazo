@@ -1,7 +1,6 @@
 # Mazo
 Mazo is a simple inteface to [MALLET](http://mallet.cs.umass.edu/index.php), built on top of [Polite](https://github.com/ontoligent/polite), which is a lite version of [Polo](https://github.com/ontoligent-design/polo2). Mazo is "mallet" in Spanish.
 
----
 ## Instructions
 
 Mazo expects `mallet` to be in your PATH environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed [the installation instructions](http://mallet.cs.umass.edu/download.php) for MALLET on the website, you'd change the value of `mallet_path` to `bin\mallet`, like so:
@@ -74,5 +73,3 @@ VOCAB.csv
 These files implement a relational data model of the topic model. They can be imported into a relational database (like SQLite) or read directly into Pandas. 
 
 Have fun!
-
-----
