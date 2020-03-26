@@ -14,7 +14,7 @@ Or, if you want to point to the specific location of `mallet`, you can do someth
 
 ```
 [DEFAULT]
-mallet_path = C:\\mallet-2.0.8\mallet\bin\mallet
+mallet_path = C:\\mallet-2.0.8\bin\mallet
 ```
 
 To begin using Mazo, you'll need to first put [a MALLET compliant corpus file](http://mallet.cs.umass.edu/import.php) in the corpus directory and name it in a special way:
