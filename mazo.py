@@ -56,7 +56,7 @@ if not os.path.isfile(mallet_output_dir):
 # Create trial directory
 import time
 trial_key = str(time.time()).replace('.', '')
-mallet_trial_dir = "{}/{}-{}".format(mallet_output_dir, keyword, trial_key)
+mallet_trial_dir = "{}/{}-{}-{}".format(mallet_output_dir, keyword, n_topics, trial_key)
 print("Creating output directory {}".format(mallet_trial_dir))
 if not os.path.isfile(mallet_trial_dir):
     try:
