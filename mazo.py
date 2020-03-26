@@ -106,6 +106,7 @@ if not os.path.isfile(tables_dir):
     except FileExistsError:
         pass
 
+# Run Polite
 p = Polite(mallet_trial_config, tables_dir+'/')
 p.do_all()
 
