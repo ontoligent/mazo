@@ -1,7 +1,7 @@
 # Mazo
 Mazo is a simple inteface MALLET, built on top of Polite, which is a lite version of Polo. Mazo is "mallet" in Spanish.
 
-# Instructions
+## Instructions
 
 Mazo expects `mallet` to be in your PATH environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed the installation instructions for MALLET on the website, you'd change the value of `mallet_path` to `bin\mallet`, like so:
 
