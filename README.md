@@ -3,7 +3,12 @@ Mazo is a simple inteface MALLET, built on top of Polite, which is a lite versio
 
 # Instructions
 
-Mazo expects `mallet` to be in your PATH environment variable. 
+Mazo expects `mallet` to be in your PATH environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed the installation instructions for MALLET on the website, you'd change the value of `mallet_path` to this:
+
+```buildoutcfg
+[DEFAULT]
+mallet_path = bin\mallet
+``` 
 
 The user puts a MALLET compliant corpus file in the corpus directory and names it in a special way:
 
