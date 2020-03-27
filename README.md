@@ -46,7 +46,7 @@ To try it out, use the demo file:
 python mazo.py demo 20
 ```
 
-After this runs, you should see and `output` directory. In that, you will see a directory named someting like this:
+After this runs, you should see an `output` directory. There you will find a directory named someting like this:
 
 ```buildoutcfg
 output/demo-20-1585231796908834
