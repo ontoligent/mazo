@@ -34,8 +34,10 @@ except IndexError:
 # See if a corpus file exists. If not, complain.
 corpus_file = "corpus/{}-corpus.csv".format(keyword)
 if not os.path.isfile(corpus_file):
-    print("Corpus file {} not found.".format(corpus_file))
+    print("Corpus file '{}' not found.".format(corpus_file))
+    print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
     sys.exit()
+print("Using corpus file '{}'.".format(corpus_file))
 
 # See if corpus file has been imported
 mallet_file = "corpus/{}-corpus.mallet".format(keyword)
@@ -44,15 +46,19 @@ if not os.path.isfile(mallet_file):
     cmd = "{} import-file --input {} --output {} --keep-sequence true --remove-stopwords true"\
         .format(mallet_bin, corpus_file, mallet_file)
     os.system(cmd)
-    print("Done creating MALLET file.")
+    print("Done creating MALLET file '{}'.".format(mallet_file))
+print("Using mallet file '{}'.".format(mallet_file))
 
 # Make sure output directory exists
 if not os.path.isfile(mallet_output_dir):
     try:
         os.mkdir(mallet_output_dir)
+        print("Created MALLET output directory '{}'.".format(mallet_output_dir))
     except FileExistsError:
-        pass
-
+        print("Using MALLET output directory '{}'.".format(mallet_output_dir))
+else:
+    print("Using MALLET output directory '{}'.".format(mallet_output_dir))
+    
 # Create trial directory
 import time
 trial_key = str(time.time()).replace('.', '')
