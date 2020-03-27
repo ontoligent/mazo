@@ -14,7 +14,7 @@ Or, if you want to point to the specific location of `mallet`, you can do someth
 
 ```
 [DEFAULT]
-mallet_path = C:\\mallet-2.0.8\bin\mallet
+mallet_path = C:\mallet-2.0.8\bin\mallet
 ```
 
 or 
