@@ -52,7 +52,7 @@ class Polite():
         with gzip.open(src_file, 'rb') as f:
             docword = pd.DataFrame(
                 [line.split() for line in f.readlines()[3:]],
-                columns=['doc_id', 'src', 'word_pos', 'word_id', 'word_str', 'topic_id'])
+                columns=['doc_id', 'src', 'word_pos', 'word_id', 'term_str', 'topic_id'])
             docword = docword[['doc_id', 'word_id', 'word_pos', 'topic_id']]
             docword = docword.astype('int')
             docword.set_index(['doc_id', 'word_id'], inplace=True)
@@ -76,12 +76,12 @@ class Polite():
         with open(src_file, 'r') as src:
             for line in src.readlines():
                 row = line.strip().split()
-                (word_id, word_str) = row[0:2]
-                WORD.append((int(word_id), word_str))
+                (word_id, term_str) = row[0:2]
+                WORD.append((int(word_id), term_str))
                 for item in row[2:]:
                     topic_id, word_count = item.split(':')
                     TOPICWORD.append((int(word_id), int(topic_id), int(word_count)))
-        word = pd.DataFrame(WORD, columns=['word_id', 'word_str'])
+        word = pd.DataFrame(WORD, columns=['word_id', 'term_str'])
         topicword = pd.DataFrame(TOPICWORD, columns=['word_id', 'topic_id', 'word_count'])
         word.set_index('word_id', inplace=True)
         topicword.set_index(['word_id', 'topic_id'], inplace=True)
@@ -94,8 +94,8 @@ class Polite():
         topicword_wide.to_csv(self.tables_dir + 'TOPICWORD.csv')
 
         src_file2 = self.get_source_file('topic-word-weights-file')
-        topicword_w = pd.read_csv(src_file2,  sep='\t', names=['topic_id','word_str','word_wgt'])\
-            .set_index(['topic_id','word_str'])
+        topicword_w = pd.read_csv(src_file2,  sep='\t', names=['topic_id','term_str','word_wgt'])\
+            .set_index(['topic_id','term_str'])
         topicword_w.to_csv(self.tables_dir + 'TOPICWORD_WEIGHTS.csv')
 
     def import_table_doctopic(self):
@@ -176,8 +176,8 @@ class Polite():
                 wvals = []
                 topic_id = tvals[0]  # Hopefully
                 wvals.append(topic_id)
-                word_str = word.xpath('text()')[0]
-                wvals.append(word_str)
+                term_str = word.xpath('text()')[0]
+                wvals.append(term_str)
                 for key in wkeys:
                     xpath = '@{}'.format(key)
                     if key in wints:
@@ -186,7 +186,7 @@ class Polite():
                         wvals.append(float(word.xpath(xpath)[0]))
                 TOPICWORD.append(wvals)
         tkeys = ['topic_{}'.format(re.sub('-', '_', k)) for k in tkeys]
-        wkeys = ['topic_id', 'word_str'] + wkeys
+        wkeys = ['topic_id', 'term_str'] + wkeys
         wkeys = [re.sub('-', '_', k) for k in wkeys]
         topic_diags = pd.DataFrame(TOPIC, columns=tkeys)
         topic_diags.set_index('topic_id', inplace=True)
@@ -194,9 +194,9 @@ class Polite():
         topics = pd.concat([topics, topic_diags], axis=1)
         topics.to_csv(self.tables_dir + 'TOPIC.csv')
         topicword_diags = pd.DataFrame(TOPICWORD, columns=wkeys)
-        topicword_diags.set_index(['topic_id', 'word_str'], inplace=True)
+        topicword_diags.set_index(['topic_id', 'term_str'], inplace=True)
         word = pd.read_csv(self.tables_dir + 'VOCAB.csv')
-        word.set_index('word_str', inplace=True)
+        word.set_index('term_str', inplace=True)
         topicword_diags = topicword_diags.join(word, how='inner')
         topicword_diags.reset_index(inplace=True)
         topicword_diags.set_index(['topic_id', 'word_id'], inplace=True)
