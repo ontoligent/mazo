@@ -94,9 +94,8 @@ class Polite():
         topicword_wide.to_csv(self.tables_dir + 'TOPICWORD.csv')
 
         src_file2 = self.get_source_file('topic-word-weights-file')
-        topicword_w = pd.read_csv(src_file2,  sep='\t',
-                                  names=['topic_id','word_str','word_wgt'],
-                                  index_col=['topic_id','word_str'])
+        topicword_w = pd.read_csv(src_file2,  sep='\t', names=['topic_id','word_str','word_wgt'])\
+            .set_index(['topic_id','word_str'])
         topicword_w.to_csv(self.tables_dir + 'TOPICWORD_WEIGHTS.csv')
 
     def import_table_doctopic(self):
