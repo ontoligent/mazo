@@ -1,0 +1,5 @@
+corpus/*
+!corpus/demo-corpus.csv
+output/*
+**/.DS_Store
+config.ini
