@@ -6,6 +6,7 @@ config.ini
 
  Mazo.egg-info/*
 __pycache__/*
+build/*
 build/lib/*
 dist/*
 polite/__pycache__/__init__.cpython-38.pyc
