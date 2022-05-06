@@ -1,6 +1,5 @@
 import re
 import os
-import sys
 import pandas as pd
 from lxml import etree
 from scipy import stats
@@ -38,11 +37,9 @@ class Polite():
         try:
             src_file = self.config[src_file_key]
         except ImportError as e:
-            print("File for {} not defined. {}".format(src_file_key, msg))
-            sys.exit()
+            raise ImportError(f"File for {src_file_key} not defined. {msg}")            
         if not os.path.isfile(src_file):
-            print("File {} does not exist. {}".format(src_file, msg))
-            sys.exit()
+            raise OSError(f"File {src_file} does not exist. {msg}")
         return src_file
 
     def import_table_state(self):
@@ -165,7 +162,7 @@ class Polite():
         for topic in tree.xpath('/model/topic'):
             tvals = []
             for key in tkeys:
-                xpath = '@{}'.format(key)
+                xpath = f'@{key}'
                 if key in tints:
                     tvals.append(int(float(topic.xpath(xpath)[0])))
                 else:
@@ -178,7 +175,7 @@ class Polite():
                 word_str = word.xpath('text()')[0]
                 wvals.append(word_str)
                 for key in wkeys:
-                    xpath = '@{}'.format(key)
+                    xpath = f'@{key}'
                     if key in wints:
                         wvals.append(int(float(word.xpath(xpath)[0])))
                     else:
