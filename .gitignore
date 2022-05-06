@@ -3,3 +3,10 @@ corpus/*
 output/*
 **/.DS_Store
 config.ini
+
+ Mazo.egg-info/*
+__pycache__/*
+build/lib/*
+dist/*
+polite/__pycache__/__init__.cpython-38.pyc
+polite/__pycache__/polite.cpython-38.pyc
