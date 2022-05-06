@@ -126,5 +126,12 @@ if not os.path.isfile(tables_dir):
 p = Polite(mallet_trial_config, tables_dir+'/')
 p.do_all()
 
+# Put results directory in memory
+print(f"Putting the string '{mallet_trial_dir}' in the clipboard for use in your code.")
+try:
+    os.system(f"echo {mallet_trial_dir.strip()} | pbcopy")
+except OSError:
+    print(f"Unable to put {mallet_trial_dir} in memory. This is probably because your OS does not have the pbcopy variable. A future version of Mazo may address this.")
+
 print("Done.")
 
