@@ -7,13 +7,12 @@ from scipy import stats
 import gzip
 
 class Polite():
-
-    # NOTE USED: 'topic-word-weights-file', 'xml-topic-report'
-    # file_params = ['output-topic-keys', 'output-doc-topics',
-    # 'word-topic-counts-file', 'topic-word-weights-file',
-    # 'xml-topic-report', 'xml-topic-phrase-report',
-    # 'diagnostics-file', 'output-state']
-
+    """
+    MALLET parameters used: 'output-topic-keys', 'output-doc-topics',
+    'word-topic-counts-file', 'topic-word-weights-file',
+    'xml-topic-report', 'xml-topic-phrase-report',
+    'diagnostics-file', 'output-state'
+    """
     def __init__(self, config_file, tables_dir='./'):
         """Initialize MALLET with trial name"""
         self.config_file = config_file

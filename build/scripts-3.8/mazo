@@ -1,0 +1,131 @@
+#!/Users/rca2t1/anaconda3/bin/python
+
+from email.errors import InvalidMultipartContentTransferEncodingDefect
+import sys
+import os 
+import re
+import time
+import configparser
+from polite.polite import Polite
+
+# Todo: make using a config file optional
+mazo_config = configparser.ConfigParser()
+mazo_config.read('config.ini')
+mallet_bin = mazo_config['DEFAULT']['mallet_path']
+mallet_output_dir = mazo_config['DEFAULT']['output_dir']
+print("Using {} as mallet.".format(mallet_bin))
+print("Using {} as output directory.".format(mallet_output_dir))
+
+# Get keyword
+try:
+    keyword = sys.argv[1]
+except IndexError:
+    raise IndexError("Please provide a keyword for your corpus.")
+
+# Get number of topics
+try:
+    n_topics = sys.argv[2]
+except IndexError:
+    raise IndexError("Please provide the number of topics you want to extract.")
+if not re.match(r'^\d+$', n_topics):
+    raise ValueError(f"{n_topics} is not an integer. Number of topics must be an integer.")
+elif int(n_topics) > 500:
+    raise ValueError(f"{n_topics} is a large number of topics. Try a smaller number.")
+else:
+    n_topics = int(sys.argv[2])
+
+# See if a corpus file exists. If not, complain.
+corpus_file = "corpus/{}-corpus.csv".format(keyword)
+if not os.path.isfile(corpus_file):
+    print("Corpus file '{}' not found.".format(corpus_file))
+    print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
+    sys.exit()
+print("Using corpus file '{}'.".format(corpus_file))
+
+# See if corpus file has been imported
+mallet_file = f"corpus/{keyword}-corpus.mallet"
+if not os.path.isfile(mallet_file):
+    print(f"MALLET file {mallet_file} not found. Creating it now.")
+    cmd = f"{mallet_bin} import-file --input {corpus_file} --output {mallet_file} --keep-sequence true --remove-stopwords true"
+    try:
+        os.system(cmd)
+    except OSError as e:
+        raise OSError(e)
+    print("Done creating MALLET file '{}'.".format(mallet_file))
+print("Using mallet file '{}'.".format(mallet_file))
+
+# Make sure output directory exists
+if not os.path.isfile(mallet_output_dir):
+    try:
+        os.mkdir(mallet_output_dir)
+        print(f"Created MALLET output directory '{mallet_output_dir}'.")
+    except FileExistsError:
+        print(f"Using MALLET output directory '{mallet_output_dir}'.")
+else:
+    print("Using MALLET output directory '{}'.".format(mallet_output_dir))
+    
+# Create trial directory
+trial_key = str(time.time()).replace('.', '')
+mallet_trial_dir = f"{mallet_output_dir}/{keyword}-{n_topics}-{trial_key}"
+print(f"Creating output directory {mallet_trial_dir}")
+if not os.path.isfile(mallet_trial_dir):
+    try:
+        os.mkdir(mallet_trial_dir)
+    except FileExistsError:
+        pass
+
+# Run the topic model
+# todo: Eventually provide ways to override these defaults. Put in config.ini under [topic-model]?
+print(f"Running topic model with {n_topics} topics.")
+params = {
+    'num-topics': n_topics,
+    'num-top-words': 10,
+    'num-iterations': 1000,
+    'optimize-interval': 100,
+    'num-threads': 4,
+    'num-top-docs': 5,
+    'doc-topics-max': 10,
+    'show-topics-interval': 100,
+    'input': mallet_file,
+    'output-topic-keys': f'{mallet_trial_dir}/topic-keys.txt',
+    'output-doc-topics': f'{mallet_trial_dir}/doc-topics.txt',
+    'word-topic-counts-file': f'{mallet_trial_dir}/word-topic-counts.txt',
+    'topic-word-weights-file': f'{mallet_trial_dir}/topic-word-weights.txt',
+    'xml-topic-report': f'{mallet_trial_dir}/topic-report.xml',
+    'xml-topic-phrase-report': f'{mallet_trial_dir}/topic-phrase-report.xml',
+    'diagnostics-file': f'{mallet_trial_dir}/diagnostics.xml',
+    'output-state': f'{mallet_trial_dir}/output-state.gz'
+}
+
+cmds = [f"--{k} {v}" for k, v in params.items()]
+train_cmd = f"{mallet_bin} train-topics {' '.join(cmds)}"
+print("Command to be executed.")
+print(train_cmd)
+try:
+    os.system(train_cmd)
+except OSError as e:
+    raise OSError(e)
+print("Done with training model.")
+
+# Make trial config file
+mallet_trial_config = f"{mallet_trial_dir}/.config.txt"
+print(f"Printing config file {mallet_trial_config}.")
+with open(mallet_trial_config, 'w') as cfg_file:
+    for k, v in params.items():
+        cfg_file.write(f"{k} {v}\n")
+
+# Convert MALLET outpupt files to tables
+tables_dir = f"{mallet_trial_dir}/tables"
+print(f"Putting tables in {tables_dir}")
+if not os.path.isfile(tables_dir):
+    try:
+        os.mkdir(tables_dir)
+    except FileExistsError:
+        pass
+
+# Run Polite to convert outputs to relational tables
+p = Polite(mallet_trial_config, tables_dir+'/')
+p.do_all()
+
+print("Done.")
+
