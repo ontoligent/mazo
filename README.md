@@ -7,6 +7,8 @@ First install [MALLET 2.0](https://mimno.github.io/Mallet/). Mazo is a wrapper a
 
 Then clone this repo and, from within the cloned directory, run `python setup.py install`. This will install the script `mazo` and the library `polite.polite` into your current Python environment. The script `mazo` will be callable from anywhere on your system.
 
+Note that Mazo requires Python 3.x.
+
 ## Usage
 
 Create a working directory for your project and move into it. Create two subdirectories, `./corpus` and `./output` and optionally a configuration file `config.ini`. 
@@ -40,13 +42,15 @@ To begin using Mazo, you'll need to first put [a MALLET compliant corpus file](h
 
 Here, `<keyword>` is a word used to name everything else. For example, the corpus directory contains a sample corpus file called `demo-corpus.csv`; `demo` is the keyword. After mazo runs, everything will be put in an output directory with the word `demo` prefixed to the files and directories.
 
+A MALLET compliant corpus file is, in this context, a comma-delimited CSV file with three columns: a document identifier, a label, and the document string. The file should have no header. Note that the the document string can have commas; MALLET stops parsing after the second comma. See the `./corpus` for example files.
+
 To run Mazo, do this:
 
 ```
 mazo <keyword> <k>
 ```
 
-where `<k>` stands for the number of topics in the model, and `python` is Python 3.*.
+where `<k>` stands for the number of topics in the model.
 
 To try it out, use the demo file found in the clone repo:
 
