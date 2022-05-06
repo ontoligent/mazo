@@ -1,17 +1,12 @@
 corpus/*
 !corpus/demo-corpus.csv
 output/*
-**/.DS_Store
 config.ini
 
- Mazo.egg-info/*
-__pycache__/*
+**/.DS_Store
+
+Mazo.egg-info/*
+**/__pycache__/*
 build/*
-build/lib/*
 dist/*
-polite/__pycache__/__init__.cpython-38.pyc
-polite/__pycache__/polite.cpython-38.pyc
-Mazo.egg-info/dependency_links.txt
-Mazo.egg-info/PKG-INFO
-Mazo.egg-info/SOURCES.txt
-Mazo.egg-info/top_level.txt
+Mazo.egg-info/*
