@@ -22,16 +22,16 @@ mazo_config = configparser.ConfigParser()
 mazo_config.read('config.ini')
 mallet_bin = mazo_config['DEFAULT']['mallet_path']
 mallet_output_dir = mazo_config['DEFAULT']['output_dir']
-print("Using {} as mallet.".format(mallet_bin))
-print("Using {} as output directory.".format(mallet_output_dir))
+print(f"Using {mallet_bin} as mallet.")
+print(f"Using {mallet_output_dir} as output directory.")
 
 # See if a corpus file exists. If not, complain.
 corpus_file = f"corpus/{args.keyword}-corpus.csv"
 if not os.path.isfile(corpus_file):
-    print("Corpus file '{}' not found.".format(corpus_file))
+    print(f"Corpus file '{corpus_file}' not found.")
     print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
     sys.exit()
-print("Using corpus file '{}'.".format(corpus_file))
+print(f"Using corpus file '{corpus_file}'.")
 
 # See if corpus file has been imported
 mallet_file = f"corpus/{args.keyword}-corpus.mallet"
@@ -44,8 +44,8 @@ if not os.path.isfile(mallet_file):
         os.system(cmd)
     except OSError as e:
         raise OSError(e)
-    print("Done creating MALLET file '{}'.".format(mallet_file))
-print("Using mallet file '{}'.".format(mallet_file))
+    print(f"Done creating MALLET file '{mallet_file}'.")
+print(f"Using mallet file '{mallet_file}'.")
 
 # Make sure output directory exists
 if not os.path.isfile(mallet_output_dir):
@@ -55,7 +55,7 @@ if not os.path.isfile(mallet_output_dir):
     except FileExistsError:
         print(f"Using MALLET output directory '{mallet_output_dir}'.")
 else:
-    print("Using MALLET output directory '{}'.".format(mallet_output_dir))
+    print(f"Using MALLET output directory '{mallet_output_dir}'.")
     
 # Create trial directory
 trial_key = str(time.time()).replace('.', '')
