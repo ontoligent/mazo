@@ -38,6 +38,8 @@ mallet_file = f"corpus/{args.keyword}-corpus.mallet"
 if not os.path.isfile(mallet_file):
     print(f"MALLET file {mallet_file} not found. Creating it now.")
     cmd = f"{mallet_bin} import-file --input {corpus_file} --output {mallet_file} --keep-sequence true --remove-stopwords true"
+    print(f"Command to be executed:")
+    print(cmd)
     try:
         os.system(cmd)
     except OSError as e:
