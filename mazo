@@ -1,6 +1,6 @@
 #! python
 
-from email.errors import InvalidMultipartContentTransferEncodingDefect
+from ast import keyword
 import sys
 import os 
 import re
@@ -12,10 +12,16 @@ from polite.polite import Polite
 
 
 # Set up arguments
+
 parser = argparse.ArgumentParser()
 parser.add_argument('keyword', type=str, help='the corpus keyword')
 parser.add_argument('n_topics', type=int, help='the number of topics')
 parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
+parser.add_argument('--trial_key', type=str, 
+    help="the name of the trial; overrides use of timestamp. Optional.",
+    default=str(time.time()).replace('.', ''))
+# Print commands only
+# Run polite only
 args = parser.parse_args()
 
 # Todo: make using a config file optional
@@ -60,8 +66,11 @@ else:
     print(f"Using MALLET output directory '{mallet_output_dir}'.")
     
 # Create trial directory
-trial_key = str(time.time()).replace('.', '')
-mallet_trial_dir = f"{mallet_output_dir}/{args.keyword}-{args.n_topics}-{trial_key}"
+# if args.trial_key:
+#     trial_key = args.trial_key
+# else:
+#     trial_key = str(time.time()).replace('.', '')
+mallet_trial_dir = f"{mallet_output_dir}/{args.keyword}-{args.n_topics}-{args.trial_key}"
 print(f"Creating output directory {mallet_trial_dir}")
 if not os.path.isfile(mallet_trial_dir):
     try:
