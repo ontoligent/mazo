@@ -2,7 +2,6 @@
 
 import sys
 import os 
-# import re
 import time
 import configparser
 import argparse
@@ -73,7 +72,7 @@ if not os.path.isfile(mallet_trial_dir):
     try:
         os.mkdir(mallet_trial_dir)
     except FileExistsError:
-        print(f">>> Directory {mallet_trial_dir} already exists. Either use a different key or modify the previous directory.")
+        print(f">>> Directory '{mallet_trial_dir}' already exists. Either use a different key or modify the previous directory.")
         sys.exit(1)
 
 # Run the topic model
@@ -134,7 +133,7 @@ if not os.path.isfile(tables_dir):
         pass
 
 # Run Polite to convert outputs to relational tables
-p = Polite(mallet_trial_config, tables_dir+'/')
+p = Polite(mallet_trial_config, tables_dir + '/')
 p.do_all()
 
 # Show where the results are (so user and cut-and-paste)
