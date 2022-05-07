@@ -99,6 +99,27 @@ These files implement a relational data model of the topic model. They can be im
 
 Have fun!
 
+# Other options
+
+To see more options, run `mazo -h`. You will see this:
+
+```
+$ mazo -h
+usage: mazo [-h] [--iters ITERS] [--trial_key TRIAL_KEY] keyword n_topics
+
+positional arguments:
+  keyword               the corpus keyword
+  n_topics              the number of topics
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --iters ITERS         number of iterations; default = 1000
+  --trial_key TRIAL_KEY
+                        the name of the trial; default is current timestamp, e.g. 1651936945538442.
+```
+
+You can change the number or iterations to train the model as well as the trial key, which serves as a suffix to uniquely identify the model data.  
+
 # Troubleshooting
 
 One reason `mazo` will fail is that your corpus has characters that are unreadable by `mallet` when it is importing the corpus file. Strip out high-ASCII characters from the file first. You can use the regular expression `[\040-\176]+` to find the offending characters and replacement with the empty string `''`. The MacOS [BBEdit](https://www.barebones.com/products/bbedit/) has a function to do this called "zap gremlins."
