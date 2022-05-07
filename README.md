@@ -10,15 +10,14 @@ First install [MALLET 2.0](https://mimno.github.io/Mallet/). Mazo is a low code 
 
 Ideally, you will have the path to the `mallet` executable in your environment so that it can be run from anywhere on our system. Or you can create an alias to the executable file in your shell initialization file (e.g. `.bash_profile`). As a final resort, you can give the path in the Mazo config file (see below).
 
-MALLET is sometimes hard to set up, due to its Java dependencies. I have found that in some cases you need to make sure your Java classpath includes the mallet jar, the class directory, and
-the mallet-deps.jar. For example, in `.bash_profile` you would add the following, where `<mallet_home>` is string representing the root path of your MALLET installation:
+MALLET is sometimes hard to set up, due to its Java dependencies. In some cases you need to make sure your Java classpath includes `lib/mallet.jar`, the `class` directory, and the `lib/mallet-deps.jar`. For example, in `.bash_profile` you would add the following, where `<mallet_home>` is string representing the root path of your MALLET installation:
 
 ```
 MALLET_HOME=<mallet_home>
 CLASSPATH=$MALLET_HOME/lib/mallet.jar:$MALLET_HOME/class:$MALLET_HOME/lib/mallet-deps.jar:$CLASSPATH
 ```
 
-Then clone this repo and, from within the cloned directory, run `python setup.py install`. This will install the script `mazo` and the library `polite.polite` into your current Python environment. The script `mazo` will be callable from anywhere on your system.
+Then clone this repo and, from within the cloned directory, run `python setup.py install` &mdash; or `python setup.py install --user` if you are on a shared system where you can't write to the python directory. This will install the script `mazo` and the library `polite.polite` into your current Python environment. The script `mazo` will be callable from anywhere on your system.
 
 Note that Mazo requires Python 3.x.
 
