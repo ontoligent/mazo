@@ -12,11 +12,26 @@ class Polite():
     'xml-topic-report', 'xml-topic-phrase-report',
     'diagnostics-file', 'output-state'
     """
+
+    # Currently unused
+    schema = dict(
+        DOC = ['doc_id'],
+        TOPIC = ['topic_id'],
+        VOCAB = ['word_id'],
+        TOPICWORD = ['word_id'],
+        TOPICWORD_NARROW = ['word_id', 'topic_id'],
+        DOCWORD = ['doc_id', 'word_id'],
+        DOCTOPIC = ['doc_id'],
+        TOPICPHRASE = ['topic_id', 'topic_phrase']
+    )
+
     def __init__(self, config_file, tables_dir='./'):
         """Initialize MALLET with trial name"""
         self.config_file = config_file
         self.tables_dir = tables_dir
         self.config = {}
+
+        # Fix data types for values in mallet config file
         with open(self.config_file, 'r') as cfg:
             for line in cfg.readlines():
                 if not re.match(r'^#', line):
@@ -59,7 +74,6 @@ class Polite():
         src_file = self.get_source_file('output-topic-keys') #self.config['output-topic-keys']
         topic = pd.read_csv(src_file, sep='\t', header=None, index_col='topic_id',
                             names=['topic_id', 'topic_alpha', 'topic_words'])
-        # topic.set_index('topic_id', inplace=True)
         topic['topic_alpha_zscore'] = stats.zscore(topic.topic_alpha)
         topic['topic_gloss'] = 'TBA'
         topic.to_csv(self.tables_dir + 'TOPIC.csv')
@@ -189,11 +203,14 @@ class Polite():
         topics = pd.read_csv(self.tables_dir + 'TOPIC.csv', index_col='topic_id')
         topics = pd.concat([topics, topic_diags], axis=1)
         topics.to_csv(self.tables_dir + 'TOPIC.csv')
+
         topicword_diags = pd.DataFrame(TOPICWORD, columns=wkeys)
         topicword_diags.set_index(['topic_id', 'word_str'], inplace=True)
         word = pd.read_csv(self.tables_dir + 'VOCAB.csv')
         word.set_index('word_str', inplace=True)
-        topicword_diags = topicword_diags.join(word, how='inner')
+        # topicword_diags = topicword_diags.join(word, how='inner')
+        # topicword_diags['word_id'] = topicword_diags.reset_index().word_str.map(word.word_id).set_index(['topic_id','word_id'])
+        topicword_diags['word_id'] = topicword_diags.apply(lambda x: word.loc[x.name[1]].word_id, axis=1)
         topicword_diags.reset_index(inplace=True)
         topicword_diags.set_index(['topic_id', 'word_id'], inplace=True)
         topicword_diags.to_csv(self.tables_dir + 'TOPICWORD_DIAGS.csv')
