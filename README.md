@@ -39,7 +39,7 @@ Or, if you want to point to the specific location of `mallet`, you can do someth
 mallet_path = C:\mallet-2.0.8\bin\mallet
 ```
 
-or 
+or on a Unix-based system:
 
 ```
 [DEFAULT]
@@ -54,7 +54,7 @@ To begin using Mazo, you'll need to first put [a MALLET compliant corpus file](h
 
 Here, `<keyword>` is a word used to name everything else. For example, the corpus directory contains a sample corpus file called `demo-corpus.csv`; `demo` is the keyword. After mazo runs, everything will be put in an output directory with the word `demo` prefixed to the files and directories.
 
-A MALLET compliant corpus file is, in this context, a comma-delimited CSV file with three columns: a document identifier, a label, and the document string. The file should have no header. Note that the the document string can have commas; MALLET stops parsing after the second comma. See the `./corpus` for example files.
+A MALLET compliant corpus file is, in this context, a comma-delimited CSV file with three columns: a document identifier, a label, and the document string. The file should have no header. Note that the document string can have commas; MALLET stops parsing after the second comma. See the `./corpus` for example files.
 
 To run Mazo, do this:
 
