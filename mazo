@@ -8,136 +8,178 @@ import argparse
 import subprocess
 from polite.polite import Polite
 
-ts = str(time.time()).replace('.', '')
+class Mazo(): 
 
-# Set up arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('keyword', type=str, help='the corpus keyword')
-parser.add_argument('n_topics', type=int, help='the number of topics')
-parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
-parser.add_argument('--trial_key', type=str, 
-    help=f"the name of the trial; default is current timestamp, e.g. {ts}.",
-    default=ts)
-# Print commands only
-# Run polite only
-# Save to sqlite
-args = parser.parse_args()
+    def __init__(self, args):       
+        self.args = args
 
-# Todo: make using a config file optional
-mazo_config = configparser.ConfigParser()
-mazo_config.read('config.ini')
-mallet_bin = mazo_config['DEFAULT']['mallet_path']
-mallet_output_dir = mazo_config['DEFAULT']['output_dir']
-print(f"Using {mallet_bin} as mallet.")
-print(f"Using {mallet_output_dir} as output directory.")
+        self.mazo_config = configparser.ConfigParser()
+        self.mazo_config.read(self.args.config_file)
+        self.mallet_bin = self.mazo_config['DEFAULT']['mallet_path']
+        self.mallet_output_dir = self.mazo_config['DEFAULT']['output_dir']
+        print(f"Using {self.mallet_bin} as mallet.")
+        print(f"Using {self.mallet_output_dir} as output directory.")
 
-# See if a corpus file exists. If not, complain.
-corpus_file = f"corpus/{args.keyword}-corpus.csv"
-if not os.path.isfile(corpus_file):
-    print(f"Corpus file '{corpus_file}' not found.")
-    print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
-    sys.exit()
-print(f"Using corpus file '{corpus_file}'.")
+        # return mazo_config, mallet_bin, mallet_output_dir, args
 
-# See if corpus file has been imported
-mallet_file = f"corpus/{args.keyword}-corpus.mallet"
-if not os.path.isfile(mallet_file):
-    print(f"MALLET file {mallet_file} not found. Creating it now.")
-    cmd = f"{mallet_bin} import-file --input {corpus_file} --output {mallet_file} --keep-sequence true --remove-stopwords true"
-    print(f"Command to be executed:")
-    print(cmd)
-    try:
-        subprocess.run(cmd.split())
-    except OSError as e:
-        print(f"MALLET file '{mallet_file}' could not be created. Error:")
-        print(e)
-        sys.exit(1)
-    print(f"Done creating MALLET file '{mallet_file}'.")
-print(f"Using mallet file '{mallet_file}'.")
+    # See if a corpus file exists. If not, complain.
+    def get_corpus_file(self):
+        # global args
+        self.corpus_file = f"corpus/{self.args.keyword}-corpus.csv"
+        if not os.path.isfile(self.corpus_file):
+            print(f"Corpus file '{self.corpus_file}' not found.")
+            print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
+            sys.exit()
+        print(f"Using corpus file '{self.corpus_file}'.")
+        # return corpus_file
+        
+    # See if corpus file has been imported
+    def get_mallet_file(self):
+        # global args, corpus_file, mallet_bin
+        self.mallet_file = f"corpus/{self.args.keyword}-corpus.mallet"
+        if not os.path.isfile(self.mallet_file):
+            print(f"MALLET file {self.mallet_file} not found. Creating it now.")
+            self.cmd = f"{self.mallet_bin} import-file --input {self.corpus_file} --output {self.mallet_file} --keep-sequence true --remove-stopwords true"
+            print(f"Command to be executed:")
+            print(self.cmd)
+            try:
+                subprocess.run(self.cmd.split())
+            except OSError as e:
+                print(f"MALLET file '{self.mallet_file}' could not be created. Error:")
+                print(e)
+                sys.exit(1)
+            print(f"Done creating MALLET file '{self.mallet_file}'.")
+        print(f"Using mallet file '{self.mallet_file}'.")
+        # return mallet_file
 
-# Make sure output directory exists
-if not os.path.isfile(mallet_output_dir):
-    try:
-        os.mkdir(mallet_output_dir)
-        print(f"Created MALLET output directory '{mallet_output_dir}'.")
-    except FileExistsError:
-        print(f"Using MALLET output directory '{mallet_output_dir}'.")
-else:
-    print(f"Using MALLET output directory '{mallet_output_dir}'.")
+    # Make sure output directory exists
+    def confirm_directory(self):
+        # global mallet_output_dir
+        if not os.path.isfile(self.mallet_output_dir):
+            try:
+                os.mkdir(self.mallet_output_dir)
+                print(f"Created MALLET output directory '{self.mallet_output_dir}'.")
+            except FileExistsError:
+                print(f"Using MALLET output directory '{self.mallet_output_dir}'.") # How can this occur?
+        else:
+            print(f"Using MALLET output directory '{self.mallet_output_dir}'.")
 
-# Create output directory of model results    
-mallet_trial_dir = f"{mallet_output_dir}/{args.keyword}-{args.n_topics}-{args.trial_key}"
-print(f"Creating output directory {mallet_trial_dir}")
-if not os.path.isfile(mallet_trial_dir):
-    try:
-        os.mkdir(mallet_trial_dir)
-    except FileExistsError:
-        print(f">>> Directory '{mallet_trial_dir}' already exists. Either use a different key or modify the previous directory.")
-        sys.exit(1)
+    # Create output directory of model results    
+    def create_trial_dir(self):
+        # global args, mallet_output_dir
+        self.mallet_trial_dir = f"{self.mallet_output_dir}/{self.args.keyword}-{self.args.n_topics}-{self.args.trial_key}"
+        print(f"Creating output directory {self.mallet_trial_dir}")
+        if not os.path.isfile(self.mallet_trial_dir):
+            try:
+                os.mkdir(self.mallet_trial_dir)
+            except FileExistsError:
+                print(f">>> Directory '{self.mallet_trial_dir}' already exists. Either use a different key or modify the previous directory.")
+                sys.exit(1)
+        # return mallet_trial_dir
 
-# Run the topic model
-# todo: Eventually provide ways to override these defaults. Put in config.ini under [topic-model]?
-print(f"Running topic model with {args.n_topics} topics.")
+    # Run the topic model
+    # todo: Eventually provide ways to override these defaults. Put in config.ini under [topic-model]?
 
-# Get overridden params
-params = {
-    'num-topics': args.n_topics,
-    'num-top-words': 10,
-    'num-iterations': args.iters,
-    'optimize-interval': 100,
-    'num-threads': 4,
-    'num-top-docs': 5,
-    'doc-topics-max': 10,
-    'show-topics-interval': 100,
-    'input': mallet_file,
-    'output-topic-keys': f'{mallet_trial_dir}/topic-keys.txt',
-    'output-doc-topics': f'{mallet_trial_dir}/doc-topics.txt',
-    'word-topic-counts-file': f'{mallet_trial_dir}/word-topic-counts.txt',
-    'topic-word-weights-file': f'{mallet_trial_dir}/topic-word-weights.txt',
-    'xml-topic-report': f'{mallet_trial_dir}/topic-report.xml',
-    'xml-topic-phrase-report': f'{mallet_trial_dir}/topic-phrase-report.xml',
-    'diagnostics-file': f'{mallet_trial_dir}/diagnostics.xml',
-    'output-state': f'{mallet_trial_dir}/output-state.gz'
-}
+    def get_model_params(self):
+        # global args, mallet_file, mallet_trial_dir
+        print(f"Running topic model with {self.args.n_topics} topics.")
+        self.params = {
+            'num-topics': self.args.n_topics,
+            'num-top-words': 10,
+            'num-iterations': self.args.iters,
+            'optimize-interval': 100,
+            'num-threads': 4,
+            'num-top-docs': 5,
+            'doc-topics-max': 10,
+            'show-topics-interval': 100,
+            'input': self.mallet_file,
+            'output-topic-keys': f'{self.mallet_trial_dir}/topic-keys.txt',
+            'output-doc-topics': f'{self.mallet_trial_dir}/doc-topics.txt',
+            'word-topic-counts-file': f'{self.mallet_trial_dir}/word-topic-counts.txt',
+            'topic-word-weights-file': f'{self.mallet_trial_dir}/topic-word-weights.txt',
+            'xml-topic-report': f'{self.mallet_trial_dir}/topic-report.xml',
+            'xml-topic-phrase-report': f'{self.mallet_trial_dir}/topic-phrase-report.xml',
+            'diagnostics-file': f'{self.mallet_trial_dir}/diagnostics.xml',
+            'output-state': f'{self.mallet_trial_dir}/output-state.gz'
+        }
 
-cmds = [f"--{k} {v}" for k, v in params.items()]
-cmd_str = ' '.join(cmds)
-train_cmd = f"{mallet_bin} train-topics {cmd_str}"
-print("Command to be executed:")
-print(train_cmd)
-print(">>>")
-try:    
-    subprocess.run(train_cmd.split())
-except OSError as e:
-    print("MALLET model could not be created. Error:")
-    print(e)
-    sys.exit(1)
-print("<<<")
-print("Done with training model.")
+        # Make trial config file
+        self.mallet_trial_config = f"{self.mallet_trial_dir}/.config.txt"
+        print(f"Printing config file {self.mallet_trial_config}.")
+        with open(self.mallet_trial_config, 'w') as cfg_file:
+            for k, v in self.params.items():
+                cfg_file.write(f"{k} {v}\n")
 
-# Make trial config file
-mallet_trial_config = f"{mallet_trial_dir}/.config.txt"
-print(f"Printing config file {mallet_trial_config}.")
-with open(mallet_trial_config, 'w') as cfg_file:
-    for k, v in params.items():
-        cfg_file.write(f"{k} {v}\n")
+        # return params, mallet_trial_config
 
-# Convert MALLET outpupt files to tables
-tables_dir = f"{mallet_trial_dir}/tables"
-print(f"Putting tables in {tables_dir}")
-if not os.path.isfile(tables_dir):
-    try:
-        print(f"Creating tables directory '{tables_dir}'")
-        os.mkdir(tables_dir)
-    except FileExistsError:
-        pass
+    def run_topic_model(self):
+        # global mallet_bin, params
 
-# Run Polite to convert outputs to relational tables
-p = Polite(mallet_trial_config, tables_dir + '/')
-p.do_all()
+        cmds = [f"--{k} {v}" for k, v in self.params.items()]
+        cmd_str = ' '.join(cmds)
+        self.train_cmd = f"{self.mallet_bin} train-topics {cmd_str}"
+        print("Command to be executed:")
+        print(self.train_cmd)
+        print(">>>")
+        try:    
+            subprocess.run(self.train_cmd.split())
+        except OSError as e:
+            print("MALLET model could not be created. Error:")
+            print(e)
+            sys.exit(1)
+        print("<<<")
+        print("Done with training model.")
 
-# Show where the results are (so user and cut-and-paste)
-print(f"Output directory: {mallet_trial_dir}")
+    # Convert MALLET outpupt files to tables
+    def convert_to_tables(self):
+        # global mallet_trial_dir, mallet_trial_config
 
-print("Done.")
+        self.tables_dir = f"{self.mallet_trial_dir}/tables/" # ADDED SLASH
+        print(f"Putting tables in {self.tables_dir}")
+        if not os.path.isfile(self.tables_dir):
+            try:
+                print(f"Creating tables directory '{self.tables_dir}'")
+                os.mkdir(self.tables_dir)
+            except FileExistsError:
+                pass
+
+        # Run Polite to convert outputs to relational tables
+        # p = Polite(self.mallet_trial_config, self.tables_dir + '/')
+        p = Polite(self.mallet_trial_config, self.tables_dir)
+        p.do_all()
+
+        # Show where the results are (so user and cut-and-paste)
+        print(f"Output directory: {self.mallet_trial_dir}")
+
+
+if __name__ == '__main__':
+
+    ts = str(time.time()).replace('.', '')
+
+    # Set up arguments -- consider pulling out of class
+    parser = argparse.ArgumentParser()
+    parser.add_argument('keyword', type=str, help='the corpus keyword')
+    parser.add_argument('n_topics', type=int, help='the number of topics')
+    parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
+    parser.add_argument('--trial_key', type=str, 
+        help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default={ts})
+    parser.add_argument("--config_file", type=str, help="Mazo config file", default='config.ini')
+
+    # Add these arguments
+    # Print commands only
+    # Run polite only
+    # Save to sqlite
+
+    args = parser.parse_args()
+
+    mazo = Mazo(args)
+    mazo.get_corpus_file()
+    mazo.get_mallet_file()
+    mazo.confirm_directory()
+    mazo.create_trial_dir()
+    mazo.get_model_params()
+    mazo.run_topic_model()
+    mazo.convert_to_tables()
+
+    print("Done.")
 
