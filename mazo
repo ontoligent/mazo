@@ -1,27 +1,27 @@
 #! python
 
-from ast import keyword
 import sys
 import os 
-import re
+# import re
 import time
 import configparser
 import argparse
 import subprocess
 from polite.polite import Polite
 
+ts = str(time.time()).replace('.', '')
 
 # Set up arguments
-
 parser = argparse.ArgumentParser()
 parser.add_argument('keyword', type=str, help='the corpus keyword')
 parser.add_argument('n_topics', type=int, help='the number of topics')
 parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
 parser.add_argument('--trial_key', type=str, 
-    help="the name of the trial; overrides use of timestamp. Optional.",
-    default=str(time.time()).replace('.', ''))
+    help=f"the name of the trial; default is current timestamp, e.g. {ts}.",
+    default=ts)
 # Print commands only
 # Run polite only
+# Save to sqlite
 args = parser.parse_args()
 
 # Todo: make using a config file optional
@@ -48,10 +48,11 @@ if not os.path.isfile(mallet_file):
     print(f"Command to be executed:")
     print(cmd)
     try:
-        # os.system(cmd)
         subprocess.run(cmd.split())
     except OSError as e:
-        raise OSError(e)
+        print(f"MALLET file '{mallet_file}' could not be created. Error:")
+        print(e)
+        sys.exit(1)
     print(f"Done creating MALLET file '{mallet_file}'.")
 print(f"Using mallet file '{mallet_file}'.")
 
@@ -64,19 +65,16 @@ if not os.path.isfile(mallet_output_dir):
         print(f"Using MALLET output directory '{mallet_output_dir}'.")
 else:
     print(f"Using MALLET output directory '{mallet_output_dir}'.")
-    
-# Create trial directory
-# if args.trial_key:
-#     trial_key = args.trial_key
-# else:
-#     trial_key = str(time.time()).replace('.', '')
+
+# Create output directory of model results    
 mallet_trial_dir = f"{mallet_output_dir}/{args.keyword}-{args.n_topics}-{args.trial_key}"
 print(f"Creating output directory {mallet_trial_dir}")
 if not os.path.isfile(mallet_trial_dir):
     try:
         os.mkdir(mallet_trial_dir)
     except FileExistsError:
-        pass
+        print(f">>> Directory {mallet_trial_dir} already exists. Either use a different key or modify the previous directory.")
+        sys.exit(1)
 
 # Run the topic model
 # todo: Eventually provide ways to override these defaults. Put in config.ini under [topic-model]?
@@ -109,11 +107,12 @@ train_cmd = f"{mallet_bin} train-topics {cmd_str}"
 print("Command to be executed:")
 print(train_cmd)
 print(">>>")
-try:
-    # os.system(train_cmd)
+try:    
     subprocess.run(train_cmd.split())
 except OSError as e:
-    raise OSError(e)
+    print("MALLET model could not be created. Error:")
+    print(e)
+    sys.exit(1)
 print("<<<")
 print("Done with training model.")
 
@@ -129,6 +128,7 @@ tables_dir = f"{mallet_trial_dir}/tables"
 print(f"Putting tables in {tables_dir}")
 if not os.path.isfile(tables_dir):
     try:
+        print(f"Creating tables directory '{tables_dir}'")
         os.mkdir(tables_dir)
     except FileExistsError:
         pass
@@ -137,12 +137,8 @@ if not os.path.isfile(tables_dir):
 p = Polite(mallet_trial_config, tables_dir+'/')
 p.do_all()
 
-# Put results directory in memory
-print(f"Putting the string '{mallet_trial_dir}' in the clipboard for use in your code.")
-try:
-    os.system(f"echo {mallet_trial_dir.strip()} | pbcopy")
-except OSError:
-    print(f"Unable to put {mallet_trial_dir} in memory. This is probably because your OS does not have the pbcopy variable. A future version of Mazo may address this.")
+# Show where the results are (so user and cut-and-paste)
+print(f"Output directory: {mallet_trial_dir}")
 
 print("Done.")
 
