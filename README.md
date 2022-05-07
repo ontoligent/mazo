@@ -122,10 +122,10 @@ You can change the number or iterations to train the model as well as the trial 
 
 # Troubleshooting
 
-One reason `mazo` will fail is that your corpus has characters that are unreadable by `mallet` when it is importing the corpus file. Strip out high-ASCII characters from the file first. You can use the regular expression `[\040-\176]+` to find the offending characters and replacement with the empty string `''`. The MacOS [BBEdit](https://www.barebones.com/products/bbedit/) has a function to do this called "zap gremlins."
+One reason `mazo` will fail is that your corpus has characters that are unreadable by `mallet` when it is importing the corpus file. Strip out high-ASCII characters from the file first. You can use the regular expression `[\040-\176]+` to find the offending characters and replace them with the empty string `''`. The MacOS [BBEdit](https://www.barebones.com/products/bbedit/) has a function to do this called "zap gremlins."
 
 # Final Remarks
 
-Mazo is meant to get you started using MALLET and to provide a nice set of output files for downstream analysis, visualization, etc. If you need more power and flexibility, you are encouraged to use MALLET directly. 
+Remember that Mazo is meant to get you started using MALLET, and to provide a nice set of output files for downstream analysis, visualization, etc. If you need more power and flexibility, you are encouraged to use MALLET directly. 
 
-If you want to use MALLET directly and then convert the resulting files into relational tables, consider importing `Polite` from `polite.polite` and using it directly. 
+If  use MALLET directly but then want to convert the resulting files into relational tables, consider importing `Polite` from `polite.polite` and using it directly.
