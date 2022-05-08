@@ -9,34 +9,39 @@ import subprocess
 from polite.polite import Polite
 
 class Mazo(): 
+    
+    def __init__(self, 
+            keyword:str, 
+            n_topics:int=10, 
+            iters:int=100, 
+            trial_key:str='foo', 
+            config_file:str='config.ini'):       
 
-    def __init__(self, args):       
-        self.args = args
+        self.keyword = keyword
+        self.n_topics = n_topics
+        self.iters = iters
+        self.trial_key = trial_key
+        self.config_file = config_file
 
         self.mazo_config = configparser.ConfigParser()
-        self.mazo_config.read(self.args.config_file)
+        self.mazo_config.read(self.config_file)
         self.mallet_bin = self.mazo_config['DEFAULT']['mallet_path']
         self.mallet_output_dir = self.mazo_config['DEFAULT']['output_dir']
         print(f"Using {self.mallet_bin} as mallet.")
         print(f"Using {self.mallet_output_dir} as output directory.")
 
-        # return mazo_config, mallet_bin, mallet_output_dir, args
-
-    # See if a corpus file exists. If not, complain.
+    # See if a source corpus file exists. If not, complain.
     def get_corpus_file(self):
-        # global args
-        self.corpus_file = f"corpus/{self.args.keyword}-corpus.csv"
+        self.corpus_file = f"corpus/{self.keyword}-corpus.csv"
         if not os.path.isfile(self.corpus_file):
             print(f"Corpus file '{self.corpus_file}' not found.")
             print("Please ensure that you have used the correct keyword or that the file is in the corpus directory.")
             sys.exit()
         print(f"Using corpus file '{self.corpus_file}'.")
-        # return corpus_file
         
-    # See if corpus file has been imported
+    # See if tje corpus file has been imported into mallet format
     def get_mallet_file(self):
-        # global args, corpus_file, mallet_bin
-        self.mallet_file = f"corpus/{self.args.keyword}-corpus.mallet"
+        self.mallet_file = f"corpus/{self.keyword}-corpus.mallet"
         if not os.path.isfile(self.mallet_file):
             print(f"MALLET file {self.mallet_file} not found. Creating it now.")
             self.cmd = f"{self.mallet_bin} import-file --input {self.corpus_file} --output {self.mallet_file} --keep-sequence true --remove-stopwords true"
@@ -50,11 +55,9 @@ class Mazo():
                 sys.exit(1)
             print(f"Done creating MALLET file '{self.mallet_file}'.")
         print(f"Using mallet file '{self.mallet_file}'.")
-        # return mallet_file
 
     # Make sure output directory exists
     def confirm_directory(self):
-        # global mallet_output_dir
         if not os.path.isfile(self.mallet_output_dir):
             try:
                 os.mkdir(self.mallet_output_dir)
@@ -66,8 +69,7 @@ class Mazo():
 
     # Create output directory of model results    
     def create_trial_dir(self):
-        # global args, mallet_output_dir
-        self.mallet_trial_dir = f"{self.mallet_output_dir}/{self.args.keyword}-{self.args.n_topics}-{self.args.trial_key}"
+        self.mallet_trial_dir = f"{self.mallet_output_dir}/{self.keyword}-{self.n_topics}-{self.trial_key}"
         print(f"Creating output directory {self.mallet_trial_dir}")
         if not os.path.isfile(self.mallet_trial_dir):
             try:
@@ -75,18 +77,15 @@ class Mazo():
             except FileExistsError:
                 print(f">>> Directory '{self.mallet_trial_dir}' already exists. Either use a different key or modify the previous directory.")
                 sys.exit(1)
-        # return mallet_trial_dir
 
     # Run the topic model
     # todo: Eventually provide ways to override these defaults. Put in config.ini under [topic-model]?
-
     def get_model_params(self):
-        # global args, mallet_file, mallet_trial_dir
-        print(f"Running topic model with {self.args.n_topics} topics.")
+        print(f"Running topic model with {self.n_topics} topics.")
         self.params = {
-            'num-topics': self.args.n_topics,
+            'num-topics': self.n_topics,
             'num-top-words': 10,
-            'num-iterations': self.args.iters,
+            'num-iterations': self.iters,
             'optimize-interval': 100,
             'num-threads': 4,
             'num-top-docs': 5,
@@ -110,11 +109,7 @@ class Mazo():
             for k, v in self.params.items():
                 cfg_file.write(f"{k} {v}\n")
 
-        # return params, mallet_trial_config
-
     def run_topic_model(self):
-        # global mallet_bin, params
-
         cmds = [f"--{k} {v}" for k, v in self.params.items()]
         cmd_str = ' '.join(cmds)
         self.train_cmd = f"{self.mallet_bin} train-topics {cmd_str}"
@@ -132,8 +127,6 @@ class Mazo():
 
     # Convert MALLET outpupt files to tables
     def convert_to_tables(self):
-        # global mallet_trial_dir, mallet_trial_config
-
         self.tables_dir = f"{self.mallet_trial_dir}/tables/" # ADDED SLASH
         print(f"Putting tables in {self.tables_dir}")
         if not os.path.isfile(self.tables_dir):
@@ -162,7 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('n_topics', type=int, help='the number of topics')
     parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
     parser.add_argument('--trial_key', type=str, 
-        help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default={ts})
+        help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default=ts)
     parser.add_argument("--config_file", type=str, help="Mazo config file", default='config.ini')
 
     # Add these arguments
@@ -171,8 +164,9 @@ if __name__ == '__main__':
     # Save to sqlite
 
     args = parser.parse_args()
+    print(vars(args))
 
-    mazo = Mazo(args)
+    mazo = Mazo(**vars(args))
     mazo.get_corpus_file()
     mazo.get_mallet_file()
     mazo.confirm_directory()
