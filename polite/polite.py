@@ -1,9 +1,11 @@
 import re
 import os
+import sys
 import pandas as pd
 from lxml import etree
 from scipy import stats
 import gzip
+from collections import namedtuple
 
 class Polite():
     """
@@ -14,24 +16,27 @@ class Polite():
     """
 
     # Currently unused
-    schema = dict(
-        DOC = ['doc_id'],
-        TOPIC = ['topic_id'],
-        VOCAB = ['word_id'],
-        TOPICWORD = ['word_id'],
-        TOPICWORD_NARROW = ['word_id', 'topic_id'],
-        DOCWORD = ['doc_id', 'word_id'],
-        DOCTOPIC = ['doc_id'],
-        TOPICPHRASE = ['topic_id', 'topic_phrase']
-    )
+    tables = namedtuple('tables', "DOC TOPIC VOCAB TOPICWORD DOCWORD DOCTOPIC DOCTOPIC_NARROW TOPICWORD_NARROW".split())
+    # schema = dict('schema', 
+    #     DOC = ['doc_id'],
+    #     TOPIC = ['topic_id'],
+    #     VOCAB = ['word_id'],
+    #     TOPICWORD = ['word_id'],
+    #     TOPICWORD_NARROW = ['word_id', 'topic_id'],
+    #     DOCWORD = ['doc_id', 'word_id'],
+    #     DOCTOPIC = ['doc_id'],
+    #     TOPICPHRASE = ['topic_id', 'topic_phrase']
+    # )
 
     def __init__(self, config_file, tables_dir='./'):
         """Initialize MALLET with trial name"""
         self.config_file = config_file
         self.tables_dir = tables_dir
-        self.config = {}
+        self._convert_config_file()        
 
-        # Fix data types for values in mallet config file
+    def _convert_config_file(self):
+        """Converts the MALLLET config file into a Python dictionary."""
+        self.config = {}
         with open(self.config_file, 'r') as cfg:
             for line in cfg.readlines():
                 if not re.match(r'^#', line):
@@ -48,18 +53,16 @@ class Polite():
                     self.config[a] = b
 
     def get_source_file(self, src_file_key):
-        msg = """Try running MALLET first."""
-        try:
-            src_file = self.config[src_file_key]
-        except ImportError as e:
-            raise ImportError(f"File for {src_file_key} not defined. {msg}")            
+        src_file = self.config[src_file_key]
         if not os.path.isfile(src_file):
-            raise OSError(f"File {src_file} does not exist. {msg}")
-        return src_file
+            print(f"File {src_file} for {src_file_key} does not exist. Try running MALLET first.")
+            sys.exit(1)
+        else:
+            return src_file
 
     def import_table_state(self):
         """Import the state file into docword table"""
-        src_file = self.get_source_file('output-state') #self.config['output-state']
+        src_file = self.get_source_file('output-state')
         with gzip.open(src_file, 'rb') as f:
             docword = pd.DataFrame(
                 [line.split() for line in f.readlines()[3:]],
@@ -71,7 +74,7 @@ class Polite():
 
     def import_table_topic(self):
         """Import data into topic table"""
-        src_file = self.get_source_file('output-topic-keys') #self.config['output-topic-keys']
+        src_file = self.get_source_file('output-topic-keys')
         topic = pd.read_csv(src_file, sep='\t', header=None, index_col='topic_id',
                             names=['topic_id', 'topic_alpha', 'topic_words'])
         topic['topic_alpha_zscore'] = stats.zscore(topic.topic_alpha)
@@ -208,8 +211,6 @@ class Polite():
         topicword_diags.set_index(['topic_id', 'word_str'], inplace=True)
         word = pd.read_csv(self.tables_dir + 'VOCAB.csv')
         word.set_index('word_str', inplace=True)
-        # topicword_diags = topicword_diags.join(word, how='inner')
-        # topicword_diags['word_id'] = topicword_diags.reset_index().word_str.map(word.word_id).set_index(['topic_id','word_id'])
         topicword_diags['word_id'] = topicword_diags.apply(lambda x: word.loc[x.name[1]].word_id, axis=1)
         topicword_diags.reset_index(inplace=True)
         topicword_diags.set_index(['topic_id', 'word_id'], inplace=True)
