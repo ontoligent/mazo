@@ -1,8 +1,6 @@
 # Mazo
 
-Mazo is a simple inteface to [MALLET](http://mallet.cs.umass.edu/index.php), built on top of [Polite](https://github.com/ontoligent/polite), which is a lite version of [Polo](https://github.com/ontoligent-design/polo2). Mazo is "mallet" in Spanish and is pronounced `/MA-so/`.
-
-Mazo uses its own version of Polite, so you don't need to install that separately.
+Mazo is a simple inteface to [MALLET](http://mallet.cs.umass.edu/index.php), a state of the art topic modeling tool. Mazo is built on top of [Polite](https://github.com/ontoligent/polite), which is a lite version of [Polo](https://github.com/ontoligent-design/polo2). Mazo is "mallet" in Spanish and is pronounced `/MA-so/`. Mazo uses its own version of Polite, so you don't need to install that separately.
 
 ## Installation
 
