@@ -5,7 +5,7 @@ import pandas as pd
 from lxml import etree
 from scipy import stats
 import gzip
-from collections import namedtuple
+from sqlalchemy import create_engine
 
 class Polite():
     """
@@ -15,24 +15,58 @@ class Polite():
     'diagnostics-file', 'output-state'
     """
 
-    # Currently unused
-    tables = namedtuple('tables', "DOC TOPIC VOCAB TOPICWORD DOCWORD DOCTOPIC DOCTOPIC_NARROW TOPICWORD_NARROW".split())
-    # schema = dict('schema', 
-    #     DOC = ['doc_id'],
-    #     TOPIC = ['topic_id'],
-    #     VOCAB = ['word_id'],
-    #     TOPICWORD = ['word_id'],
-    #     TOPICWORD_NARROW = ['word_id', 'topic_id'],
-    #     DOCWORD = ['doc_id', 'word_id'],
-    #     DOCTOPIC = ['doc_id'],
-    #     TOPICPHRASE = ['topic_id', 'topic_phrase']
-    # )
+    class TableDef():
+        def __init__(self, index=[], cols=[]):
+            self.cols = cols
+            self.index = index
 
-    def __init__(self, config_file, tables_dir='./'):
+    schema = dict(
+        DOC = TableDef(['doc_id']),
+        DOCTOPIC_NARROW = TableDef(['doc_id', 'topic_id']),
+        DOCTOPIC = TableDef(['doc_id']),
+        DOCWORD = TableDef(['doc_id', 'word_id']),
+        TOPIC = TableDef(['topic_id']),
+        TOPICPHRASE = TableDef(['topic_id', 'topic_phrase']),
+        TOPICWORD_DIAGS = TableDef(['topic_id', 'word_id']),
+        TOPICWORD_NARROW = TableDef(['word_id', 'topic_id']),
+        TOPICWORD_WEIGHTS = TableDef(['topic_id', 'word_str']),
+        TOPICWORD = TableDef(['word_id']),
+        VOCAB = TableDef(['word_id'])
+    ) 
+
+    def __init__(self, config_file, tables_dir='./', save_mode='csv'):
         """Initialize MALLET with trial name"""
         self.config_file = config_file
         self.tables_dir = tables_dir
-        self._convert_config_file()        
+        self._convert_config_file()
+        self.save_mode = save_mode
+
+        if self.save_mode == 'sql':
+            engine = create_engine(f'sqlite:///{self.tables_dir}model.db', echo=True)
+            self.db = engine.connect()
+
+    def __del__(self):
+        if self.save_mode == 'sql':
+            self.db.close()
+
+    def save_table(self, df, table_name):
+        self.schema[table_name].cols = df.columns
+        if self.save_mode == 'sql':
+            df.to_sql(table_name, self.db, if_exists='replace', index=True)    
+        elif self.save_mode == 'csv':
+            df.to_csv(self.tables_dir + f'{table_name}.csv')
+
+    def get_table(self, table_name):
+        index_cols = self.schema[table_name].index
+        if self.save_mode == 'sql':
+            df = pd.read_sql_table(table_name, self.db, 
+            index_col = index_cols)
+        elif self.save_mode == 'csv':
+            df = pd.read_csv(self.tables_dir + f'{table_name}.csv', 
+                index_col=index_cols)
+        else:
+            raise ValueError("No save method!")
+        return df
 
     def _convert_config_file(self):
         """Converts the MALLLET config file into a Python dictionary."""
@@ -51,6 +85,8 @@ class Polite():
                     elif re.match(r'^FALSE$', b, flags=re.IGNORECASE):
                         b = False
                     self.config[a] = b
+        
+        # config = pd.DataFrame(self.config)
 
     def get_source_file(self, src_file_key):
         src_file = self.config[src_file_key]
@@ -67,20 +103,25 @@ class Polite():
             docword = pd.DataFrame(
                 [line.split() for line in f.readlines()[3:]],
                 columns=['doc_id', 'src', 'word_pos', 'word_id', 'word_str', 'topic_id'])
-            docword = docword[['doc_id', 'word_id', 'word_pos', 'topic_id']]
-            docword = docword.astype('int')
-            docword.set_index(['doc_id', 'word_id'], inplace=True)
-            docword.to_csv(self.tables_dir + 'DOCWORD.csv')
+        docword = docword[['doc_id', 'word_id', 'word_pos', 'topic_id']]
+        docword = docword.astype('int')
+        docword = docword.set_index(['doc_id', 'word_id'])
+
+        # SAVE
+        self.save_table(docword, 'DOCWORD')
+
 
     def import_table_topic(self):
         """Import data into topic table"""
         src_file = self.get_source_file('output-topic-keys')
         topic = pd.read_csv(src_file, sep='\t', header=None, index_col='topic_id',
-                            names=['topic_id', 'topic_alpha', 'topic_words'])
+            names=['topic_id', 'topic_alpha', 'topic_words'])
         topic['topic_alpha_zscore'] = stats.zscore(topic.topic_alpha)
-        topic['topic_gloss'] = 'TBA'
-        topic.to_csv(self.tables_dir + 'TOPIC.csv')
 
+        # SAVE
+        self.save_table(topic, 'TOPIC')
+
+        
     def import_tables_topicword_and_word(self):
         """Import data into topicword and word tables"""
         src_file = self.get_source_file('word-topic-counts-file')
@@ -89,56 +130,65 @@ class Polite():
         with open(src_file, 'r') as src:
             for line in src.readlines():
                 row = line.strip().split()
-                (word_id, word_str) = row[0:2]
+                word_id, word_str = row[0:2]
                 WORD.append((int(word_id), word_str))
                 for item in row[2:]:
                     topic_id, word_count = item.split(':')
                     TOPICWORD.append((int(word_id), int(topic_id), int(word_count)))
-        word = pd.DataFrame(WORD, columns=['word_id', 'word_str'])
-        topicword = pd.DataFrame(TOPICWORD, columns=['word_id', 'topic_id', 'word_count'])
-        word.set_index('word_id', inplace=True)
-        topicword.set_index(['word_id', 'topic_id'], inplace=True)
-        word.to_csv(self.tables_dir + 'VOCAB.csv')
-        topicword.to_csv(self.tables_dir + 'TOPICWORD_NARROW.csv')
 
+        # May use schema for indexes
+        word = pd.DataFrame(WORD, columns=['word_id', 'word_str']).set_index('word_id')
+        topicword = pd.DataFrame(TOPICWORD, columns=['word_id', 'topic_id', 'word_count'])\
+            .set_index(['word_id', 'topic_id'])
         topicword_wide = topicword.unstack(fill_value=0)
         topicword_wide.columns = topicword_wide.columns.droplevel(0)
         topicword_wide = topicword_wide / topicword_wide.sum()
-        topicword_wide.to_csv(self.tables_dir + 'TOPICWORD.csv')
 
         src_file2 = self.get_source_file('topic-word-weights-file')
         topicword_w = pd.read_csv(src_file2,  sep='\t', names=['topic_id','word_str','word_wgt'])\
             .set_index(['topic_id','word_str'])
-        topicword_w.to_csv(self.tables_dir + 'TOPICWORD_WEIGHTS.csv')
+
+        # COMBINE TOPICWORD_NARROW AND TOPICWORD_WEIGHTS
+        # Note that word weights are just smoothed values
+        # So we really should only save the smoothing beta parameter, e.g. .01
+        # Get beta from self.config['beta']
+        # Should have model table for this stuff ... import the config file
+        # topicword_w = topicword_w.reset_index()
+        # topicword_w['word_id'] = topicword_w.word_str.map(word.reset_index().set_index('word_str').word_id)
+        # topicword_w = topicword_w.set_index(['topic_id','word_id'])
+        # topicword['word_wgt'] = topicword_w.word_wgt
+        
+        # SAVE
+        self.save_table(word, 'VOCAB')
+        self.save_table(topicword, 'TOPICWORD_NARROW')
+        self.save_table(topicword_wide, 'TOPICWORD')
+        # self.save_table(topicword_w, 'TOPICWORD_WEIGHTS')
+
 
     def import_table_doctopic(self):
         """Import data into doctopic table"""
-        src_file = self.get_source_file('output-doc-topics') #self.config['output-doc-topics']
+        src_file = self.get_source_file('output-doc-topics')
         doctopic = pd.read_csv(src_file, sep='\t', header=None)
-        doc = pd.DataFrame(doctopic.iloc[:, 1])
-        doc.columns = ['doc_tmp']
-        doc['src_doc_id'] = doc.doc_tmp.apply(lambda x: x.split(',')[0])
-        doc['doc_label'] = doc.doc_tmp.apply(lambda x: x.split(',')[1])
-        doc = doc[['src_doc_id', 'doc_label']]
-        doc.index.name = 'doc_id' 
-        doctopic.drop(1, axis = 1, inplace=True)
-        doctopic.rename(columns={0:'doc_id'}, inplace=True)
-        y = [col for col in doctopic.columns[1:]]
-        doctopic_narrow = pd.lreshape(doctopic, {'topic_weight': y})
-        doctopic_narrow['topic_id'] = [i for i in range(self.config['num-topics'])
-                                        for doc_id in doctopic['doc_id']]
-        doctopic_narrow = doctopic_narrow[['doc_id', 'topic_id', 'topic_weight']]
-        doctopic_narrow.set_index(['doc_id', 'topic_id'], inplace=True)
+        cols = ['doc_id', 'doc_tmp'] + [t for t in range(doctopic.shape[1]-2)]
+        doctopic.columns = cols
+        doctopic = doctopic.set_index('doc_id')
+        doc = doctopic.doc_tmp.str.split(',', expand=True).iloc[:, :2]
+        doc.columns = ['src_doc_id', 'doc_label']
+        doc.index.name = 'doc_id'
+        doctopic = doctopic.drop('doc_tmp', axis=1)
+        doctopic_narrow = doctopic.unstack().to_frame('topic_weight')
+        doctopic_narrow.index.names = ['doc_id', 'topic_id']
         doctopic_narrow['topic_weight_zscore'] = stats.zscore(doctopic_narrow.topic_weight)
-        dtm = doctopic_narrow.reset_index()\
-            .set_index(['doc_id','topic_id'])['topic_weight'].unstack()
-        dtm.to_csv(self.tables_dir + 'DOCTOPIC.csv')
-        doc.to_csv(self.tables_dir + 'DOC.csv')
-        doctopic_narrow.to_csv(self.tables_dir + 'DOCTOPIC_NARROW.csv')
+        
+        # SAVE
+        self.save_table(doctopic, 'DOCTOPIC')
+        self.save_table(doc, 'DOC')
+        self.save_table(doctopic_narrow, 'DOCTOPIC_NARROW')
+
 
     def import_table_topicphrase(self):
         """Import data into topicphrase table"""
-        src_file = self.get_source_file('xml-topic-phrase-report') #self.config['xml-topic-phrase-report']
+        src_file = self.get_source_file('xml-topic-phrase-report')
         TOPICPHRASE = []
         tree = etree.parse(src_file)
         for topic in tree.xpath('/topics/topic'):
@@ -148,24 +198,38 @@ class Polite():
                 phrase_count = int(phrase.xpath('@count')[0])
                 topic_phrase = phrase.xpath('text()')[0]
                 TOPICPHRASE.append((topic_id, topic_phrase, phrase_weight, phrase_count))
-        topicphrase = pd.DataFrame(TOPICPHRASE, columns=['topic_id', 'topic_phrase',
-                                                         'phrase_weight', 'phrase_count'])
+        topicphrase = pd.DataFrame(TOPICPHRASE, 
+            columns=['topic_id', 'topic_phrase', 'phrase_weight', 'phrase_count'])
+
+        # Add phrase list to TOPIC
+        # MOVE TO add_topic_glosses()
+        topic = self.get_table('TOPIC')
+        topic['phrases'] = topicphrase.groupby('topic_id').apply(lambda x: ', '.join(x.topic_phrase))
+
         topicphrase.set_index(['topic_id', 'topic_phrase'], inplace=True)
-        topicphrase.to_csv(self.tables_dir + 'TOPICPHRASE.csv')
+
+        # SAVE
+        self.save_table(topicphrase, 'TOPICPHRASE')
+        self.save_table(topic, 'TOPIC')
+
 
     def add_topic_glosses(self):
         """Add glosses to topic table"""
-        topicphrase = pd.read_csv(self.tables_dir + 'TOPICPHRASE.csv',
-                                  index_col=['topic_id','topic_phrase'])
-        topic = pd.read_csv(self.tables_dir + 'TOPIC.csv', index_col='topic_id')
+        topicphrase = self.get_table('TOPICPHRASE')
+        topic = self.get_table('TOPIC')
         topic['topic_gloss'] = topicphrase['phrase_weight'].unstack().idxmax(1)
-        topic.to_csv(self.tables_dir + 'TOPIC.csv')
+        
+        # SAVE
+        self.save_table(topic, 'TOPIC')
 
     def add_diagnostics(self):
         """Add diagnostics data to topics and topicword_diags tables"""
-        src_file = self.get_source_file('diagnostics-file') #self.config['diagnostics-file']
+        src_file = self.get_source_file('diagnostics-file')
+        
         TOPIC = []
         TOPICWORD = []
+
+        # Schema
         tkeys = ['id', 'tokens', 'document_entropy', 'word-length', 'coherence',
                  'uniform_dist', 'corpus_dist',
                  'eff_num_words', 'token-doc-diff', 'rank_1_docs',
@@ -175,6 +239,7 @@ class Polite():
         wkeys = ['rank', 'count', 'prob', 'cumulative', 'docs', 'word-length', 'coherence',
                  'uniform_dist', 'corpus_dist', 'token-doc-diff', 'exclusivity']
         wints = ['rank', 'count', 'docs', 'word-length']
+
         tree = etree.parse(src_file)
         for topic in tree.xpath('/model/topic'):
             tvals = []
@@ -198,23 +263,24 @@ class Polite():
                     else:
                         wvals.append(float(word.xpath(xpath)[0]))
                 TOPICWORD.append(wvals)
+
         tkeys = ['topic_{}'.format(re.sub('-', '_', k)) for k in tkeys]
         wkeys = ['topic_id', 'word_str'] + wkeys
         wkeys = [re.sub('-', '_', k) for k in wkeys]
-        topic_diags = pd.DataFrame(TOPIC, columns=tkeys)
-        topic_diags.set_index('topic_id', inplace=True)
-        topics = pd.read_csv(self.tables_dir + 'TOPIC.csv', index_col='topic_id')
-        topics = pd.concat([topics, topic_diags], axis=1)
-        topics.to_csv(self.tables_dir + 'TOPIC.csv')
 
-        topicword_diags = pd.DataFrame(TOPICWORD, columns=wkeys)
-        topicword_diags.set_index(['topic_id', 'word_str'], inplace=True)
-        word = pd.read_csv(self.tables_dir + 'VOCAB.csv')
-        word.set_index('word_str', inplace=True)
+        topic_diags = pd.DataFrame(TOPIC, columns=tkeys).set_index('topic_id')
+        
+        topics = self.get_table('TOPIC')
+        topics = pd.concat([topics, topic_diags], axis=1)
+        topicword_diags = pd.DataFrame(TOPICWORD, columns=wkeys).set_index(['topic_id', 'word_str'])
+
+        word = self.get_table('VOCAB').reset_index().set_index('word_str')
         topicword_diags['word_id'] = topicword_diags.apply(lambda x: word.loc[x.name[1]].word_id, axis=1)
-        topicword_diags.reset_index(inplace=True)
-        topicword_diags.set_index(['topic_id', 'word_id'], inplace=True)
-        topicword_diags.to_csv(self.tables_dir + 'TOPICWORD_DIAGS.csv')
+        topicword_diags = topicword_diags.reset_index().set_index(['topic_id', 'word_id'])
+
+        # SAVE
+        self.save_table(topics, 'TOPIC')
+        self.save_table(topicword_diags, 'TOPICWORD_DIAGS')
 
     def do_all(self):
         """Run all importers and adders"""
@@ -225,3 +291,5 @@ class Polite():
         self.import_table_topicphrase()
         self.add_diagnostics()
         self.add_topic_glosses()
+
+

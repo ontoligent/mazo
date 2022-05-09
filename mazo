@@ -14,7 +14,8 @@ class Mazo():
             n_topics:int=10, 
             iters:int=100, 
             trial_key:str='foo', 
-            config_file:str='config.ini'):       
+            config_file:str='config.ini',
+            save_mode:str='csv'):       
 
         # Capture arguments
         self.keyword = keyword
@@ -22,6 +23,7 @@ class Mazo():
         self.iters = iters
         self.trial_key = trial_key
         self.config_file = config_file
+        self.save_mode = save_mode
 
         # Read in local configs
         self.mazo_config = configparser.ConfigParser()
@@ -97,6 +99,7 @@ class Mazo():
                     'doc-topics-max': 10,
                     'show-topics-interval': 100,
                     'input': self.mallet_file,
+                    'beta': 0.01,
                     'output-topic-keys': f'{self.mallet_trial_dir}/topic-keys.txt',
                     'output-doc-topics': f'{self.mallet_trial_dir}/doc-topics.txt',
                     'word-topic-counts-file': f'{self.mallet_trial_dir}/word-topic-counts.txt',
@@ -151,8 +154,9 @@ class Mazo():
     # Convert MALLET outpupt files to tables
     def convert_to_tables(self):
         print("Converting output files to tables.")
-        p = Polite(self.mallet_cmds['train-topics']['file'], self.tables_dir)
-        p.do_all()
+        self.polite = Polite(self.mallet_cmds['train-topics']['file'], 
+            self.tables_dir, save_mode=self.save_mode)
+        self.polite.do_all()
         print(f"Output directory: {self.mallet_trial_dir}")
 
 
@@ -165,22 +169,24 @@ if __name__ == '__main__':
     parser.add_argument('keyword', type=str, help='the corpus keyword')
     parser.add_argument('n_topics', type=int, help='the number of topics')
     parser.add_argument('--iters', type=int, help="number of iterations; default = 1000", default=1000)
-    parser.add_argument('--trial-key', type=str, 
-        help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default=ts)
-    parser.add_argument("--config-file", type=str, help="Mazo config file", default='config.ini')
-    parser.add_argument("--print-only", type=bool, help="Only print mallet command config files", default=False)
+    parser.add_argument('--trial_key', type=str, help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default=ts)
+    parser.add_argument("--config_file", type=str, help="Mazo config file", default='config.ini')
+    parser.add_argument("--print_only", type=bool, help="Only print mallet command config files", default=False)
+    parser.add_argument("--save_mode", type=str, help="Save to CSV 'csv' or SQLite 'sql'; default = 'csv", default='csv')
     
     # Add these arguments
     # Run polite only
-    # Save to sqlite
 
     args = parser.parse_args()
-    mazo_params = {k:vars(args)[k] for k in ['keyword', 'n_topics', 'iters', 'trial_key', 'config_file']}
+    mazo_params = {k:vars(args)[k] for k in ['keyword', 'n_topics', 'iters', 'trial_key', 'config_file', 'save_mode']}
     mazo = Mazo(**mazo_params)
+
     mazo.generate_config_files()
+    
     if not args.print_only:
         mazo.get_mallet_file()
         mazo.run_topic_model()
         mazo.convert_to_tables()
+    
     print("Done.")
 
