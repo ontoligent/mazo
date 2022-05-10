@@ -103,7 +103,9 @@ To see more options, run `mazo -h`. You will see this:
 
 ```
 $ mazo -h
-usage: mazo [-h] [--iters ITERS] [--trial_key TRIAL_KEY] keyword n_topics
+usage: mazo [-h] [--iters ITERS] [--trial_key TRIAL_KEY] [--config_file CONFIG_FILE]
+            [--print_only PRINT_ONLY] [--save_mode SAVE_MODE]
+            keyword n_topics
 
 positional arguments:
   keyword               the corpus keyword
@@ -113,7 +115,13 @@ optional arguments:
   -h, --help            show this help message and exit
   --iters ITERS         number of iterations; default = 1000
   --trial_key TRIAL_KEY
-                        the name of the trial; default is current timestamp, e.g. 1651936945538442.
+                        the name of the trial; default is current timestamp, e.g. 16521990932452369.
+  --config_file CONFIG_FILE
+                        Mazo config file
+  --print_only PRINT_ONLY
+                        Only print mallet command config files
+  --save_mode SAVE_MODE
+                        Save to CSV 'csv' or SQLite 'sql'; default = 'csv
 ```
 
 You can change the number or iterations to train the model as well as the trial key, which serves as a suffix to uniquely identify the model data.  
