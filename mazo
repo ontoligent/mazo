@@ -172,7 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('--trial_key', type=str, help=f"the name of the trial; default is current timestamp, e.g. {ts}.", default=ts)
     parser.add_argument("--config_file", type=str, help="Mazo config file", default='config.ini')
     parser.add_argument("--print_only", type=bool, help="Only print mallet command config files", default=False)
-    parser.add_argument("--save_mode", type=str, help="Save to CSV 'csv' or SQLite 'sql'; default = 'csv", default='csv')
+    parser.add_argument("--save_mode", type=str, help="Save to CSV 'csv' or SQLite 'sql'; default = 'csv'", default='csv')
     
     # Add these arguments
     # Run polite only

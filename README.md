@@ -121,7 +121,7 @@ optional arguments:
   --print_only PRINT_ONLY
                         Only print mallet command config files
   --save_mode SAVE_MODE
-                        Save to CSV 'csv' or SQLite 'sql'; default = 'csv
+                        Save to CSV 'csv' or SQLite 'sql'; default = 'csv'
 ```
 
 You can change the number or iterations to train the model as well as the trial key, which serves as a suffix to uniquely identify the model data.  
