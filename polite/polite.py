@@ -25,6 +25,7 @@ class Polite():
         DOCTOPIC_NARROW = TableDef(['doc_id', 'topic_id']),
         DOCTOPIC = TableDef(['doc_id']),
         DOCWORD = TableDef(['doc_id', 'word_id']),
+        PHRASE = TableDef(['phrase_str']),
         TOPIC = TableDef(['topic_id']),
         TOPICPHRASE = TableDef(['topic_id', 'topic_phrase']),
         TOPICWORD_DIAGS = TableDef(['topic_id', 'word_id']),
@@ -208,7 +209,19 @@ class Polite():
 
         topicphrase.set_index(['topic_id', 'topic_phrase'], inplace=True)
 
+        phrase = topicphrase.value_counts('topic_phrase').to_frame('n_topics').sort_index()
+        phrase['n_words'] = topicphrase.groupby('topic_phrase').phrase_count.sum().sort_index()
+        M = topicphrase.sort_index().reset_index()
+        M['topic_name'] = M.topic_id.astype('str').str.zfill(2)
+        phrase['topic_list'] = M.groupby('topic_phrase').topic_name.apply(lambda x: ' '.join(x))\
+            .to_frame('topic_list').sort_index()
+        del(M)
+        phrase['topic_weight_mean'] = topicphrase.groupby(['topic_phrase']).mean().phrase_weight.sort_index()
+
+        topic['topic_label'] = topic.index.astype('str').str.zfill(2) + ': ' + topic.topic_words
+
         # SAVE
+        self.save_table(phrase, 'PHRASE')
         self.save_table(topicphrase, 'TOPICPHRASE')
         self.save_table(topic, 'TOPIC')
 
