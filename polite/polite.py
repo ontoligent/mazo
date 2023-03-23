@@ -25,7 +25,7 @@ class Polite():
         DOCTOPIC_NARROW = TableDef(['doc_id', 'topic_id']),
         DOCTOPIC = TableDef(['doc_id']),
         DOCWORD = TableDef(['doc_id', 'word_id']),
-        PHRASE = TableDef(['phrase_str']),
+        PHRASE = TableDef(['topic_phrase']),
         TOPIC = TableDef(['topic_id']),
         TOPICPHRASE = TableDef(['topic_id', 'topic_phrase']),
         TOPICWORD_DIAGS = TableDef(['topic_id', 'word_id']),
