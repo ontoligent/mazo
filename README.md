@@ -6,11 +6,11 @@ Mazo is a simple inteface to [MALLET](http://mallet.cs.umass.edu/index.php), a s
 
 First install [MALLET 2.0](https://mimno.github.io/Mallet/). Mazo is a low code wrapper around MALLET, designed to make it easy to generate topic models and to store the resulting outputs in a collection of relational tables (as CSV files). 
 
-Ideally, you will have the path to the `mallet` executable in your environment so that it can be run from anywhere on our system. Or you can create an alias to the executable file in your shell initialization file (e.g. `.bash_profile`). As a final resort, you can give the path in the Mazo config file (see below).
+Ideally, you will have the path to the `mallet` executable in your environment so that it can be run from anywhere on your system. Or you can create an alias to the executable file in your shell initialization file (e.g. `.bash_profile`). As a final resort, you can give the path in the Mazo config file (see below).
 
 MALLET is sometimes hard to set up, due to its Java dependencies. In some cases you need to make sure your Java classpath includes `lib/mallet.jar`, the `class` directory, and the `lib/mallet-deps.jar`. For example, in `.bash_profile` you would add the following, where `<mallet_home>` is string representing the root path of your MALLET installation:
 
-```
+```bash
 MALLET_HOME=<mallet_home>
 CLASSPATH=$MALLET_HOME/lib/mallet.jar:$MALLET_HOME/class:$MALLET_HOME/lib/mallet-deps.jar:$CLASSPATH
 ```
@@ -25,28 +25,28 @@ Create a working directory for your project and move into it. Create two subdire
 
 As stated in the installation instructions, Mazo expects `mallet` to be in your `PATH` environment variable. If it is not, you'll need to edit the `config.ini` file. For example, if you are using Windows and followed [the installation instructions](http://mallet.cs.umass.edu/download.php) for MALLET on the website, you'd change the value of `mallet_path` to `bin\mallet`, like so:
 
-```
+```ini
 [DEFAULT]
 mallet_path = bin\mallet
 ``` 
 
 Or, if you want to point to the specific location of `mallet`, you can do something like this:
 
-```
+```ini
 [DEFAULT]
 mallet_path = C:\mallet-2.0.8\bin\mallet
 ```
 
 or on a Unix-based system:
 
-```
+```ini
 [DEFAULT]
 mallet_path = /opt/mallet/bin/mallet
 ```
 
 To begin using Mazo, you'll need to first put [a MALLET compliant corpus file](http://mallet.cs.umass.edu/import.php) in the corpus directory `./corpus` and name it in a special way:
 
-```
+```bash
 <keyword>-corpus.csv
 ```
 
@@ -56,7 +56,7 @@ A MALLET compliant corpus file is, in this context, a comma-delimited CSV file w
 
 To run Mazo, do this:
 
-```
+```bash
 mazo <keyword> <k>
 ```
 
@@ -64,22 +64,22 @@ where `<k>` stands for the number of topics in the model.
 
 To try it out, use the demo file found in the clone repo:
 
-```
+```bash
 mazo demo 20
 ```
 
 After this runs, in your `./output` directory you will find a directory named someting like this:
 
-```buildoutcfg
+```bash
 output/demo-20-1585231796908834
 ```
 Note, Mazo will create the `./output` if your forgot to.
 
-The long number is just the keyword with the number of tokens and a unix timestamp added to it. It is used to separate your topic models from each other, since each is unique. (You should delete these directories when you done with them.)
+The file name is just the keyword with the number of topics and a unix timestamp added to it. It is used to separate your topic models from each other, since each is unique. (You should delete these directories when you done with them.)
 
 Inside of this directory, you will find all the files that MALLET generated, plus a subdirectory `./tables`. In that directory, you should see the following files:
 
-```buildoutcfg
+```bash
 DOC.csv
 DOCTOPIC.csv
 DOCTOPIC_NARROW.csv
@@ -101,7 +101,7 @@ Have fun!
 
 To see more options, run `mazo -h`. You will see this:
 
-```
+```bash
 $ mazo -h
 usage: mazo [-h] [--iters ITERS] [--trial_key TRIAL_KEY] [--config_file CONFIG_FILE]
             [--print_only PRINT_ONLY] [--save_mode SAVE_MODE]
